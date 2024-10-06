@@ -4,6 +4,7 @@ package handler
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -31,11 +32,11 @@ func NewPaymentHandler(db *sql.DB, provider *stripe.Service) *PaymentHandler {
 // It extracts the merchant ID from the URL parameters, fetches the payments from the database using the PaymentService,
 // and writes the response as JSON.
 func (p *PaymentHandler) GetAllByMerchantID(w http.ResponseWriter, r *http.Request) {
-	merchantID := chi.URLParam(r, "merchant_id")
+	merchantID := chi.URLParam(r, "merchantID")
 	payments, err := p.paymentService.FindAllByMerchantID(r.Context(), merchantID)
 	if err != nil {
 		log.Println("Error trying to find payments", err)
-		httpJP.WriteError(w, r, http.StatusBadRequest, "internal server error")
+		httpJP.WriteError(w, r, http.StatusBadRequest, "error finding payments, please try again later")
 		return
 	}
 	httpJP.WriteJson(w, r, http.StatusOK, payments, "Payments retrieved successfully")
@@ -45,11 +46,15 @@ func (p *PaymentHandler) GetAllByMerchantID(w http.ResponseWriter, r *http.Reque
 // It extracts the payment ID from the URL parameters, fetches the payment from the database using the PaymentService,
 // and writes the response as JSON.
 func (p *PaymentHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
-	paymentID := chi.URLParam(r, "payment_id")
+	paymentID := chi.URLParam(r, "paymentID")
 	payment, err := p.paymentService.FindByID(r.Context(), paymentID)
 	if err != nil {
 		log.Println("Error trying to find payment", err)
-		httpJP.WriteError(w, r, http.StatusBadRequest, "payment not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			httpJP.WriteError(w, r, http.StatusNotFound, "payment not found")
+			return
+		}
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error finding payment, please try again later")
 		return
 	}
 	httpJP.WriteJson(w, r, http.StatusOK, payment, "Payment retrieved successfully")
@@ -74,21 +79,25 @@ func (p *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	payment := input.ToPayment()
 	if err := p.paymentService.Save(r.Context(), payment); err != nil {
 		log.Println("Error trying to save payment", err)
-		httpJP.WriteError(w, r, http.StatusInternalServerError, "internal server error")
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error creating payment, please try again later")
 		return
 	}
-	httpJP.WriteJson(w, r, http.StatusCreated, payment, "Payment processed successfully")
+	httpJP.WriteJson(w, r, http.StatusCreated, payment, "Payment created successfully")
 }
 
 // ProcessPayment handles the HTTP request to process an existing payment.
 // It retrieves the payment ID from the URL parameters, fetches the payment from the database,
 // processes the payment using the PaymentService, and writes the response as JSON.
 func (p *PaymentHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
-	paymentID := chi.URLParam(r, "payment_id")
+	paymentID := chi.URLParam(r, "paymentID")
 	payment, err := p.paymentService.FindByID(r.Context(), paymentID)
 	if err != nil {
 		log.Println("Error trying to find payment", err)
-		httpJP.WriteError(w, r, http.StatusBadRequest, "payment not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			httpJP.WriteError(w, r, http.StatusNotFound, "payment not found")
+			return
+		}
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error finding payment, please try again later")
 		return
 	}
 	if !payment.IsPending() {
@@ -98,7 +107,7 @@ func (p *PaymentHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) 
 	err = p.paymentService.ProcessPayment(r.Context(), payment)
 	if err != nil {
 		log.Println("Error trying to process payment", err)
-		httpJP.WriteError(w, r, http.StatusInternalServerError, "internal server error")
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error processing payment, please try again later")
 		return
 	}
 	httpJP.WriteJson(w, r, http.StatusOK, payment, "Payment processed successfully")
@@ -108,11 +117,15 @@ func (p *PaymentHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) 
 // It retrieves the payment ID from the URL parameters, fetches the payment from the database,
 // refunds the payment using the PaymentService, and writes the response as JSON.
 func (p *PaymentHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
-	paymentID := chi.URLParam(r, "payment_id")
+	paymentID := chi.URLParam(r, "paymentID")
 	payment, err := p.paymentService.FindByID(r.Context(), paymentID)
 	if err != nil {
 		log.Println("Error trying to find payment", err)
-		httpJP.WriteError(w, r, http.StatusBadRequest, "payment not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			httpJP.WriteError(w, r, http.StatusNotFound, "payment not found")
+			return
+		}
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error finding payment, please try again later")
 		return
 	}
 	if !payment.IsSuccess() {
@@ -122,7 +135,7 @@ func (p *PaymentHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
 	err = p.paymentService.RefundPayment(r.Context(), payment)
 	if err != nil {
 		log.Println("Error trying to refund payment", err)
-		httpJP.WriteError(w, r, http.StatusInternalServerError, "internal server error")
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error refunding payment, please try again later")
 		return
 	}
 	httpJP.WriteJson(w, r, http.StatusOK, payment, "Payment refunded successfully")

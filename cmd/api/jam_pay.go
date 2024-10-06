@@ -24,21 +24,23 @@ func main() {
 		log.Fatal(err)
 	}
 
+	merchanHandlers := merchant.NewMerchantHandler(db)
+
+	stripeProvider := stripe.NewStripeService()
+	paymentHandlers := merchant.NewPaymentHandler(db, stripeProvider)
+
 	router := chi.NewRouter()
 	router.Route("/api", func(r chi.Router) {
 		r.Route("/merchant", func(r chi.Router) {
-			merchanHandlers := merchant.NewMerchantHandler(db)
 			r.Get("/{merchantID}", merchanHandlers.FindMerchant)
+			r.Get("/{merchantID}/payments", paymentHandlers.GetAllByMerchantID)
 		})
 
 		r.Route("/payment", func(r chi.Router) {
-			stripeProvider := stripe.NewStripeService()
-			paymentHandlers := merchant.NewPaymentHandler(db, stripeProvider)
-			r.Get("/merchant/{merchant_id}", paymentHandlers.GetAllByMerchantID)
-			r.Get("/{payment_id}", paymentHandlers.GetPayment)
 			r.Post("/", paymentHandlers.CreatePayment)
-			r.Post("/process/{payment_id}", paymentHandlers.ProcessPayment)
-			r.Post("/refund/{payment_id}", paymentHandlers.RefundPayment)
+			r.Get("/{paymentID}", paymentHandlers.GetPayment)
+			r.Post("/{paymentID}/process", paymentHandlers.ProcessPayment)
+			r.Post("/{paymentID}/refund", paymentHandlers.RefundPayment)
 		})
 	})
 

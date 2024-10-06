@@ -3,6 +3,7 @@ package handler
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -29,7 +30,11 @@ func (m *MerchantHandler) FindMerchant(w http.ResponseWriter, r *http.Request) {
 	merchantID := chi.URLParam(r, "merchantID")
 	merchant, err := m.MerchantService.FindByID(merchantID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if errors.Is(err, sql.ErrNoRows) {
+			httpJP.WriteError(w, r, http.StatusNotFound, "merchant not found")
+			return
+		}
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error finding merchant, please try again later")
 		return
 	}
 	httpJP.WriteJson(w, r, http.StatusOK, merchant, "Merchant information retrieved successfully")

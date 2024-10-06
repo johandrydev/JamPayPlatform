@@ -36,5 +36,5 @@ go.sum
 # env file
 .env
 
-#config tern file
-./migrations/tern.conf
+#config files
+*.conf

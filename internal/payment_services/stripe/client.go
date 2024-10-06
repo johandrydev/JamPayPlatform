@@ -27,13 +27,13 @@ func NewStripeService() *Service {
 
 // CreatePaymentIntent creates a payment intent on Stripe with the specified amount, payment methods, and payment ID.
 // It returns the created PaymentIntent or an error if the creation fails.
-func (s *Service) CreatePaymentIntent(amount int64, paymentMethod []string, paymentID string) (*stripe.PaymentIntent, error) {
+func (s *Service) CreatePaymentIntent(amount int64, paymentMethod []string, paymentID string, customerID string) (*stripe.PaymentIntent, error) {
 	params := &stripe.PaymentIntentParams{
 		Amount:             stripe.Int64(amount),
 		Currency:           stripe.String(string(stripe.CurrencyUSD)),
 		PaymentMethodTypes: stripe.StringSlice(paymentMethod),
 		PaymentMethod:      stripe.String(paymentID),
-		Customer:           stripe.String("cus_QygDqCJ2EEzfm4"),
+		Customer:           stripe.String(customerID),
 		Confirm:            stripe.Bool(true),
 		CaptureMethod:      stripe.String(string(stripe.PaymentIntentCaptureMethodAutomatic)),
 	}

@@ -4,6 +4,11 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"log"
+
+	"github.com/google/uuid"
+
+	"JamPay/internal/model"
 )
 
 // CustomerRepository represents a repository for managing customer data.
@@ -18,9 +23,33 @@ func NewCustomerRepository(db *sql.DB) *CustomerRepository {
 
 // FindByID retrieves a customer by their ID from the database.
 // It returns an error if the customer is not found or if there is an issue with the database query.
-func (c *CustomerRepository) FindByID(ctx context.Context, customerID string) error {
-	// TODO: Implement the logic to find a customer by ID
-	return nil
+func (c *CustomerRepository) FindByID(ctx context.Context, customerID uuid.UUID) (*model.Customer, error) {
+	var customer model.Customer
+	err := c.db.QueryRowContext(
+		ctx, `
+			SELECT
+			    id,
+			    external_id,
+			    name,
+			    email,
+			    status
+			FROM
+			    customers
+			WHERE
+			    id = $1`,
+		customerID,
+	).Scan(
+		&customer.ID,
+		&customer.ExternalID,
+		&customer.Name,
+		&customer.Email,
+		&customer.Status,
+	)
+	if err != nil {
+		log.Println("error finding customer", err)
+		return &customer, err
+	}
+	return &customer, err
 }
 
 // UpdateStatus updates the status of a customer in the database.

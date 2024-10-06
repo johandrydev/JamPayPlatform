@@ -48,7 +48,7 @@ func (p *PaymentService) Update(ctx context.Context, payment *model.Payment) err
 }
 
 // ProcessPayment processes a payment using the Stripe service.
-func (p *PaymentService) ProcessPayment(ctx context.Context, payment *model.Payment) error {
+func (p *PaymentService) ProcessPayment(ctx context.Context, payment *model.Payment, customer *model.Customer) error {
 	amountInCents := int64(payment.Amount * 100)
 	paymentMethod, err := p.paymentMethodRepo.FindById(payment.PaymentMethodID)
 	if err != nil {
@@ -56,7 +56,7 @@ func (p *PaymentService) ProcessPayment(ctx context.Context, payment *model.Paym
 		return err
 	}
 	stripePaymentMethod := paymentMethod.ToStripePaymentMethod()
-	providerResult, err := p.stripeClient.CreatePaymentIntent(amountInCents, stripePaymentMethod, paymentMethod.ExternalID)
+	providerResult, err := p.stripeClient.CreatePaymentIntent(amountInCents, stripePaymentMethod, paymentMethod.ExternalID, customer.ExternalID)
 	if err != nil {
 		log.Println("error creating payment intent", err)
 		payment.Fail()

@@ -18,13 +18,15 @@ import (
 
 // PaymentHandler handles HTTP requests related to payments.
 type PaymentHandler struct {
-	paymentService *service.PaymentService
+	paymentService  *service.PaymentService
+	customerService *service.CustomerService
 }
 
 // NewPaymentHandler creates a new PaymentHandler with the given database connection and payment provider (Stripe).
 func NewPaymentHandler(db *sql.DB, provider *stripe.Service) *PaymentHandler {
 	return &PaymentHandler{
-		paymentService: service.NewPaymentService(db, provider),
+		paymentService:  service.NewPaymentService(db, provider),
+		customerService: service.NewCustomerService(db),
 	}
 }
 
@@ -104,7 +106,13 @@ func (p *PaymentHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) 
 		httpJP.WriteError(w, r, http.StatusBadRequest, "payment has already been processed")
 		return
 	}
-	err = p.paymentService.ProcessPayment(r.Context(), payment)
+	customer, err := p.customerService.FindByID(r.Context(), payment.CustomerID)
+	if err != nil {
+		log.Println("Error trying to find customer", err)
+		httpJP.WriteError(w, r, http.StatusInternalServerError, "error processing payment, please try again later")
+		return
+	}
+	err = p.paymentService.ProcessPayment(r.Context(), payment, customer)
 	if err != nil {
 		log.Println("Error trying to process payment", err)
 		httpJP.WriteError(w, r, http.StatusInternalServerError, "error processing payment, please try again later")

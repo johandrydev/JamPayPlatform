@@ -1,0 +1,36 @@
+### GET request to example server
+GET http://localhost:8080/api/merchant/8d384f61-c92b-4867-abfc-f78ed3b6ea15
+
+###
+
+POST http://localhost:8080/api/payment
+Content-Type: application/json
+
+{
+  "amount": 1,
+  "merchant_id": "8d384f61-c92b-4867-abfc-f78ed3b6ea15",
+  "customer_id": "41cd94bb-50d4-4ff3-923e-9b3c919895ca",
+  "payment_method_id": "ec228ab0-7abc-4e15-a1c6-5df6ba5534af"
+}
+
+###
+
+GET http://localhost:8080/api/payment/merchant/8d384f61-c92b-4867-abfc-f78ed3b6ea15
+Content-Type: application/json
+
+###
+
+GET http://localhost:8080/api/payment/e82caafd-1ed9-4086-acd3-3e183c25a7e5
+Content-Type: application/json
+
+###
+
+POST http://localhost:8080/api/payment/process/e82caafd-1ed9-4086-acd3-3e183c25a7e5
+Content-Type: application/json
+
+###
+
+POST http://localhost:8080/api/payment/refund/e82caafd-1ed9-4086-acd3-3e183c25a7e5
+Content-Type: application/json
+
+

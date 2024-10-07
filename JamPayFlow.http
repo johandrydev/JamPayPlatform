@@ -1,14 +1,27 @@
+### POST Login
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+  "email": "peach@mail.com",
+  "password": "password"
+}
+> {% client.global.set("auth_token", response.body.data.token); %}
+
 ### GET request to example server
 GET http://localhost:8080/api/merchant/ab532205-dcc5-41ac-98c9-f9ee2b039aac
-
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
 ###
 
 GET http://localhost:8080/api/merchant/ab532205-dcc5-41ac-98c9-f9ee2b039aac/payments
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 ###
 
 POST http://localhost:8080/api/payment
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
@@ -20,17 +33,20 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:8080/api/payment/5343dec9-6f75-407b-9291-b1a5e52a9085
+GET http://localhost:8080/api/payment/f65ec669-c0dd-4094-b787-b8869f0eedbb
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/api/payment/5343dec9-6f75-407b-9291-b1a5e52a9085/process
+POST http://localhost:8080/api/payment/f65ec669-c0dd-4094-b787-b8869f0eedbb/process
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/api/payment/5343dec9-6f75-407b-9291-b1a5e52a9085/refund
+POST http://localhost:8080/api/payment/f65ec669-c0dd-4094-b787-b8869f0eedbb/refund
+Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 

@@ -46,7 +46,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error finding user by email", err)
 		if errors.Is(err, sql.ErrNoRows) {
-			httpJP.WriteError(w, r, http.StatusBadRequest, "invalid email or password")
+			httpJP.WriteError(w, r, http.StatusUnauthorized, "invalid email or password")
 			return
 		}
 		httpJP.WriteError(w, r, http.StatusInternalServerError, "error trying to login, please try again later")
@@ -54,7 +54,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !user.IsValidPassword(input.Password) {
-		httpJP.WriteError(w, r, http.StatusBadRequest, "invalid email or password")
+		httpJP.WriteError(w, r, http.StatusUnauthorized, "invalid email or password")
 		return
 	}
 

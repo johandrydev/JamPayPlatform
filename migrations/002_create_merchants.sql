@@ -13,9 +13,9 @@ ALTER TABLE merchants
     ADD CONSTRAINT fk_users_email FOREIGN KEY (email) REFERENCES users (email);
 
 INSERT INTO users (email, role, hashed_password, created_at)
-VALUES ('peach@mail.com', 'MERCHANT', 'RANDOMHASH', now()),
-         ('mario@mail.com', 'MERCHANT', 'HASH1', now()),
-         ('luigi@mail.com', 'MERCHANT', 'HASH2', now());
+VALUES ('peach@mail.com', 'MERCHANT', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now()),
+         ('mario@mail.com', 'MERCHANT', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now()),
+         ('luigi@mail.com', 'MERCHANT', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now());
 
 INSERT INTO merchants (email, name, bank_account, status, created_at)
 VALUES ('peach@mail.com', 'Peach Bros', '123456789', 'VERIFIED', now()),

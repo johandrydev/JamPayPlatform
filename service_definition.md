@@ -1,9 +1,44 @@
 # JAMPay payment platform API
+
 ## Service definition
 
 This document describes the API endpoints for the JAMPay payment platform.
 
 ## API Endpoints
+
+### Login
+
+**Endpoint:** `POST /api/login`
+
+**Description:** Logs in a user.
+
+**Request Body:**
+
+- `LoginInput` (JSON): The input data for logging in a user.
+
+```json
+{
+  "email": "peach@mail.com",
+  "password": "password"
+}
+```
+
+**Responses:**
+
+- `200 OK`: User logged in successfully.
+
+```json
+{
+  "message": "User logged in successfully",
+  "data": {
+    "token": "eyJ..."
+  }
+}
+```
+
+- `400 Bad Request`: Invalid request body.
+- `401 Unauthorized`: Invalid email or password.
+- `500 Internal Server Error`: error trying to login, please try again later.
 
 ### Get Merchant
 
@@ -12,11 +47,14 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Description:** Retrieves a merchant information by its ID.
 
 **Request Parameters:**
+
 - `merchantID` (path parameter): The ID of the merchant to retrieve.
+- `Authorization` (header): The token of the user logged in with a Bearer format.
 
 **Responses:**
 
 - `200 OK`: Merchant information retrieved successfully.
+
 ```json
 {
   "message": "Merchant information retrieved successfully",
@@ -29,6 +67,7 @@ This document describes the API endpoints for the JAMPay payment platform.
   }
 }
 ```
+
 - `404 Not Found`: Merchant not found.
 - `500 Internal Server Error`: error finding merchant, please try again later.
 
@@ -39,11 +78,14 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Description:** Retrieves all payments made to a merchant.
 
 **Request Parameters:**
+
 - `merchantID` (path parameter): The ID of the merchant to retrieve payments for.
+- `Authorization` (header): The token of the user logged in with a Bearer format. The user must be the merchant owner of the payments.
 
 **Responses:**
 
 - `200 OK`: Payments retrieved successfully.
+
 ```json
 {
   "message": "Payments retrieved successfully",
@@ -87,6 +129,8 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Request Body:**
 
 - `PaymentInput` (JSON): The input data for creating a payment.
+- `Authorization` (header): The token of the user logged in with a Bearer format. The user must be a customer.
+
 ```json
 {
   "merchant_id": "8d384f61-c92b-4867-abfc-f78ed3b6ea15",
@@ -99,6 +143,7 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Responses:**
 
 - `201 Created`: Payment created successfully
+
 ```json
 {
   "message": "Payment created successfully",
@@ -127,9 +172,12 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Description:** Retrieves a payment by its ID.
 
 **Request Parameters:**
+
 - `paymentID` (path parameter): The ID of the payment to retrieve.
+- `Authorization` (header): The token of the user logged in with a Bearer format.
 
 **Responses:**
+
 - `200 OK`: Payment retrieved successfully.
 
 ```json
@@ -160,9 +208,12 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Description:** Processes an existing payment.
 
 **Request Parameters:**
+
 - `paymentID` (path parameter): The ID of the payment to process.
+- `Authorization` (header): The token of the user logged in with a Bearer format. The user must be the merchant owner of the payment.
 
 **Responses:**
+
 - `200 OK`: Payment processed successfully.
 
 ```json
@@ -195,9 +246,12 @@ This document describes the API endpoints for the JAMPay payment platform.
 **Description:** Refunds an existing payment.
 
 **Request Parameters:**
+
 - `paymentID` (path parameter): The ID of the payment to refund.
+- `Authorization` (header): The token of the user logged in with a Bearer format. The user must be the merchant owner of the payment.
 
 **Responses:**
+
 - `200 OK`: Payment refunded successfully.
 
 ```json

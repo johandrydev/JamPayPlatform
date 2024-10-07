@@ -7,9 +7,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 
-	merchant "JamPay/internal/handler"
+	"JamPay/internal/handler"
 	"JamPay/internal/payment_services/stripe"
 	"JamPay/internal/pkg/database"
+	"JamPay/internal/pkg/middleware"
 )
 
 const port = "8080"
@@ -24,23 +25,37 @@ func main() {
 		log.Fatal(err)
 	}
 
-	merchanHandlers := merchant.NewMerchantHandler(db)
+	merchantHandlers := handler.NewMerchantHandler(db)
 
 	stripeProvider := stripe.NewStripeService()
-	paymentHandlers := merchant.NewPaymentHandler(db, stripeProvider)
+	paymentHandlers := handler.NewPaymentHandler(db, stripeProvider)
+
+	authHandler := handler.NewAuthHandler(db)
 
 	router := chi.NewRouter()
 	router.Route("/api", func(r chi.Router) {
-		r.Route("/merchant", func(r chi.Router) {
-			r.Get("/{merchantID}", merchanHandlers.FindMerchant)
-			r.Get("/{merchantID}/payments", paymentHandlers.GetAllByMerchantID)
-		})
+		r.Post("/login", authHandler.Login)
 
-		r.Route("/payment", func(r chi.Router) {
-			r.Post("/", paymentHandlers.CreatePayment)
-			r.Get("/{paymentID}", paymentHandlers.GetPayment)
-			r.Post("/{paymentID}/process", paymentHandlers.ProcessPayment)
-			r.Post("/{paymentID}/refund", paymentHandlers.RefundPayment)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.IsAuthenticated)
+
+			r.Route("/merchant", func(r chi.Router) {
+				r.Get("/{merchantID}", merchantHandlers.FindMerchant)
+
+				r.With(middleware.IsMerchant).Route("/{merchantID}/payments", func(r chi.Router) {
+					r.Get("/", paymentHandlers.GetAllByMerchantID)
+				})
+			})
+
+			r.Route("/payment", func(r chi.Router) {
+				r.With(middleware.IsCustomer).Post("/", paymentHandlers.CreatePayment)
+				r.Route("/{paymentID}", func(r chi.Router) {
+					r.Get("/", paymentHandlers.GetPayment)
+
+					r.With(middleware.IsMerchant).Post("/process", paymentHandlers.ProcessPayment)
+					r.With(middleware.IsMerchant).Post("/refund", paymentHandlers.RefundPayment)
+				})
+			})
 		})
 	})
 

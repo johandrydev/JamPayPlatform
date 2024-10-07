@@ -23,9 +23,9 @@ ALTER TABLE customers
     ADD CONSTRAINT fk_users_email FOREIGN KEY (email) REFERENCES users (email);
 
 INSERT INTO users (email, role, hashed_password, created_at)
-VALUES ('pablo@client.com', 'CUSTOMER', 'RANDOMHASH', now()),
-       ('maria@example.com', 'CUSTOMER', 'HASH1', now()),
-       ('pedro@example.com', 'CUSTOMER', 'HASH2', now());
+VALUES ('pablo@client.com', 'CUSTOMER', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now()),
+       ('maria@example.com', 'CUSTOMER', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now()),
+       ('pedro@example.com', 'CUSTOMER', '$2a$10$WZvWSnML1cnDm.VSZhWjGuQM9eQIVQRdMr5cD2sFHhF9yhB27cFxi', now());
 
 INSERT INTO customers (name, email, status, created_at)
 VALUES ('Pablo Mendez', 'pablo@client.com', 'ACTIVE', now()),
